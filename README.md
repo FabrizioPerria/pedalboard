@@ -21,4 +21,13 @@ Moreover, through the SDA and SCL lines, the raspberry will sense the proximity 
 on the display.
 
 # RASPBERRY PI
+The raspberry pi is responsible to detect the pressure of a button, read the proximity of the foot on the expression pedal, control the 
+display and send datagrams to the UDP server. 
+The datagrams contain very simple messages which are not part of the MIDI protocol (i used simple messages to simplify the sniffing phase 
+during the debug) and this part can be optimized if there are bandwidth problems.
+
+# SERVER 
+The server is built in python code in order to keep simple the code which implements the MIDI protocol.
+In order to use the python code on my laptop (which is a macbook) i used osascript to launch the signal processing application (Peavey 
+Revalver 3.5); obviously you need to change this part if you have another OS and if you wanna use another amp modeling software).
 
