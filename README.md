@@ -3,6 +3,9 @@ Jack Pedalboard is a project intended to build a guitar MIDI pedalboard
 through the use of a Raspberry Pi and a computer with an amplifier 
 simulator installed which can be controlled through MIDI protocol.
 
+To compile execute:  
+    gcc -o pedalboard *.c -lpthread
+     
 The project uses the following hardware modules:
   - Raspberry Pi B+ model
   - USB 5V battery (for the raspberry pi)
