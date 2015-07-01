@@ -63,7 +63,8 @@ try:
 			break
 		if(data == "start"):
 			#start a program
-			os.system("osascript -e \'tell application \"ReValverMkIIIdotV_Live\" to open\'")
+			os.system("open /Applications/ReValverMkIIIdotV_Live.app/")
+			#os.system("osascript -e \'tell application \"ReValverMkIIIdotV_Live\" to open\'")
 		elif(data == "stop"):
 			#stop a program
 			os.system("osascript -e \'tell application \"ReValverMkIIIdotV_Live\" to quit\'")
