@@ -79,10 +79,14 @@ class ComThread(threading.Thread):
                     #start a program
                     if sys.platform == "win32":
                         os.startfile("C:\Program Files (x86)\Peavey Electronics\ReValver Mk IIIdotV\ReValverMkIIIdotV.exe");
+		    else:
+			os.system("open /Applications/ReValverMkIIIdotV_Live.app/")
                 elif(data == "stop"):
                     #stop a program
                     if sys.platform == "win32":
                         os.system("TASKKILL /F /IM ReValverMkIIIdotV.exe")
+		    else:
+			os.system("osascript -e \'tell application \"ReValverMkIIIdotV_Live\" to quit\'")
                 elif(data == "revOn"):
                     #Reverber On
                     midiOut.send_message([0x90,101,100])
