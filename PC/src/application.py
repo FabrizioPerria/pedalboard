@@ -117,7 +117,6 @@ class ComThread(threading.Thread):
 
 class Jack_Pedalboard:
     def __init__(self, master=None):
-        print sys.platform
         _bgcolor = '#d9d9d9'  # X11 color: 'gray85'
         _fgcolor = '#000000'  # X11 color: 'black'
         _compcolor = '#d9d9d9' # X11 color: 'gray85'
