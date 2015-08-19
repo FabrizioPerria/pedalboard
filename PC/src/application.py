@@ -90,15 +90,19 @@ class ComThread(threading.Thread):
                 elif(data == "revOn"):
                     #Reverber On
                     midiOut.send_message([0x90,101,100])
+		    midiOut.send_message([0x80,101,100])
                 elif(data == "revOff"):
                     #Reverber Off
                     midiOut.send_message([0x90,101,100])
+		    midiOut.send_message([0x80,101,100])
                 elif(data == "choOn"):
                     #chorus On
                     midiOut.send_message([0x90,102,100])
+		    midiOut.send_message([0x80,102,100])
                 elif(data == "choOff"):
                     #chorus Off
                     midiOut.send_message([0x90,102,100])
+		    midiOut.send_message([0x80,102,100])
                 elif(data == "distOn"):
                     #distortion On
                     midiOut.send_message([0x90,103,100])
@@ -110,9 +114,11 @@ class ComThread(threading.Thread):
                 elif(data == "pedalOn"):
                     #proximity On
                     midiOut.send_message([0x90,104,100])
+		    midiOut.send_message([0x80,104,100])
                 elif(data == "pedalOff"):
                     #proximityOff
                     midiOut.send_message([0x90,104,100])
+		    midiOut.send_message([0x80,104,100])
                 elif(data.isdigit()):
                     #proximity value
                     midiOut.send_message([0xB0,0x04,int(data)%127])
