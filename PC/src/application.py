@@ -1,22 +1,8 @@
 #!/usr/bin/python
-#This file is part of Jack_pedalboard.
-
-#    Jack_pedalboard is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    Jack_pedalboard is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-
-#    You should have received a copy of the GNU General Public License
-#    along with Jack_pedalboard.  If not, see <http://www.gnu.org/licenses/>.
 
 import socket
 import sys
-import rtmidi_python as rtmidi
+import rtmidi #rtmidi_python as rtmidi
 import numpy as np
 import time
 import os
@@ -79,14 +65,14 @@ class ComThread(threading.Thread):
                     #start a program
                     if sys.platform == "win32":
                         os.startfile("C:\Program Files (x86)\Peavey Electronics\ReValver Mk IIIdotV\ReValverMkIIIdotV.exe");
-		    else:
-			os.system("open /Applications/ReValverMkIIIdotV_Live.app/")
+                    elif sys.platform == "linux2":
+                        os.system("/usr/share/playonlinux/playonlinux --run \"ReValverMkIIIdotV\" %F");
                 elif(data == "stop"):
                     #stop a program
                     if sys.platform == "win32":
                         os.system("TASKKILL /F /IM ReValverMkIIIdotV.exe")
-		    else:
-			os.system("osascript -e \'tell application \"ReValverMkIIIdotV_Live\" to quit\'")
+                    elif sys.platform == "linux2":
+                        os.system("killall ReValverMkIIIdotV.exe");
                 elif(data == "revOn"):
                     #Reverber On
                     midiOut.send_message([0x90,101,100])
@@ -121,9 +107,15 @@ class ComThread(threading.Thread):
 		    midiOut.send_message([0x80,104,100])
                 elif(data.isdigit()):
                     #proximity value
-                    midiOut.send_message([0xB0,0x04,int(data)%127])
+                    a = (int(data) - 2696) / 2;
+                    if(a < 0):
+                        a = 0;
+                    if(a > 255):
+                        a = 255;
+                    print(a)
+                    midiOut.send_message([0xB0,0x07,a])
                 else:
-                    print ("Message not Recognized")
+                    print (data, "Message not Recognized")
             except:
                 print ("Thread Error!!!!!!",sys.exc_info())
 
@@ -191,9 +183,12 @@ class Jack_Pedalboard:
         self.MidiList.configure(width=307)
         self.MidiList.configure(takefocus="")
         self.midiOut = rtmidi.MidiOut()
-        self.MidiList["value"] = ["None"] + self.midiOut.ports
+        array = ["None"]
+        for i in range(self.midiOut.get_port_count()):
+            array.append(self.midiOut.get_port_name(i))
+        self.MidiList["value"] = array
         self.MidiList.current(0)
-        
+
         self.Label3 = Label(self.Frame1)
         self.Label3.place(relx=0.04, rely=0.68, height=26, width=38)
         self.Label3.configure(background=_bgcolor)
