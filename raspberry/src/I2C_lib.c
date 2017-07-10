@@ -1,22 +1,3 @@
-/*
-This file is part of Jack_pedalboard.
-
-    Jack_pedalboard is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Jack_pedalboard is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Jack_pedalboard.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
-
-
 #include "I2C_lib.h"
 
 /*****************************************************************************
@@ -76,8 +57,8 @@ void I2C_writeCmd(unsigned char slaveAddr, unsigned char reg,unsigned char cmd)
 {
         if(pthread_mutex_trylock(&i2c_lock) == 0){
                 if(currentSlave!=slaveAddr){
-                        if (ioctl(i2c_fd, I2C_SLAVE, slaveAddr) < 0) {
-								pthread_mutex_unlock(&i2c_lock);
+                        if (ioctl(i2c_fd, I2C_SLAVE_FORCE, slaveAddr) < 0) {
+				pthread_mutex_unlock(&i2c_lock);
                                 return;
                         } else {
                                 currentSlave = slaveAddr;
@@ -91,7 +72,7 @@ void I2C_writeCmd(unsigned char slaveAddr, unsigned char reg,unsigned char cmd)
                 write(i2c_fd,buf,2);
                 pthread_mutex_unlock(&i2c_lock);
 	    }
-        usleep(500);
+       //usleep(100);
 }
 
 /************************************************************************

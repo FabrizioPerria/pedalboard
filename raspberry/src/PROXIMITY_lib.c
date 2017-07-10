@@ -1,22 +1,3 @@
-/*
-This file is part of Jack_pedalboard.
-
-    Jack_pedalboard is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Jack_pedalboard is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Jack_pedalboard.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
-
-
 #include "PROXIMITY_lib.h"
 /*****************************************************************************************************
  Setting up the proximity measurements feature of VCNL4000 with the values suggested by the datasheet
@@ -87,7 +68,7 @@ int getProximityMeasure()
 		c=VCNL4000_readCmd(PROXIMITY_DATA_LSB);
 
 		result |= (int)c;
-    
+
 		return result;
 }
 
@@ -102,7 +83,7 @@ int getAmbientLightMeasure()
 
 	   int result= (int)c << 8;
 
-       c=VCNL4000_readCmd(PROXIMITY_AMBIENT_DATA_LSB);
+           c=VCNL4000_readCmd(PROXIMITY_AMBIENT_DATA_LSB);
 
 	   result |= (int)c;
 	   return result;

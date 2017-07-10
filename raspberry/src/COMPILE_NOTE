@@ -1,0 +1,2 @@
+compile with gcc -o pedalboard *.c -lpthread -lm
+
