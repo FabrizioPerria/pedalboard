@@ -5,7 +5,7 @@
 #include "debug_enable.h"
 
 /**********************************************************************
- Memory addresses of the GPIO registers
+  Memory addresses of the GPIO registers
  *************************************************************************/
 #define GPIO_BASE                               BCM2835_BASE + 0x200000
 #define GPIO_PIN_LEVEL                          *(gpio.addr + 13)
@@ -23,7 +23,7 @@
 extern peripheral gpio;
 
 /************************************************************************
- PROTOTYPES
+  PROTOTYPES
  ************************************************************************/
 int GPIO_map();
 void GPIO_unmap();

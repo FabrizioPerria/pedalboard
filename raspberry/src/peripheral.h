@@ -14,9 +14,9 @@
 #define BLOCK_SIZE 4*1024
 
 typedef struct peripheral {
-    int memoryFILE;
-    void *map;
-    volatile unsigned int *addr;
+	int memoryFILE;
+	void *map;
+	volatile unsigned int *addr;
 }peripheral;
 
 #endif
