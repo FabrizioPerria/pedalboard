@@ -13,7 +13,7 @@
 #define GPIO_RISING_EDGE_ENABLE                 *(gpio.addr + 19)
 #define GPIO_FALLING_EDGE_ENABLE                *(gpio.addr + 22)
 #define GPIO_HIGH_DETECT_ENABLE                 *(gpio.addr + 25)
-#define GPIO_LOW_DETECT ENABLE                  *(gpio.addr + 28)
+#define GPIO_LOW_DETECT_ENABLE                  *(gpio.addr + 28)
 #define GPIO_RISING_DETECT                      *(gpio.addr + 31)
 #define GPIO_FALLING_DETECT                     *(gpio.addr + 34)
 

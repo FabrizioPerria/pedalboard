@@ -1,0 +1,13 @@
+#if !PINS_DEF
+#define PINS_DEF
+
+#define GPIO_ON_OFF 17
+#define GPIO_PROXIMITY 27
+#define GPIO_REVERB 22
+#define GPIO_CHORUS 5
+#define GPIO_DISTORTION 6
+#define GPIO_RESET 4
+#define GPIO_SR04_TRIGGER 18
+#define GPIO_SR04_ECHO 13
+
+#endif

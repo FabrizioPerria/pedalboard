@@ -9,8 +9,8 @@
 #define START_EXPR_PEDAL			"pedalOn"
 #define STOP_EXPR_PEDAL			    "pedalOff"
 
-#define START_REVERBER				"revOn"
-#define STOP_REVERBER				"revOff"
+#define START_REVERB				"revOn"
+#define STOP_REVERB				"revOff"
 
 #define START_CHORUS				"choOn"
 #define STOP_CHORUS					"choOff"

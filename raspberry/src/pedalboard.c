@@ -21,6 +21,7 @@
   CUSTOM INCLUDES
  *******************************************************/
 
+#include "pins_definition.h"
 #include "GPIO_lib.h"
 #include "PROXIMITY_lib.h"
 #include "I2C_lib.h"
@@ -66,6 +67,9 @@ boolean isLockInit = FALSE;
 GPIO_STATUS checkButton(boolean* GPIO_is_set, int GPIO_num, int GUI_N, char* message_on, char* message_off)
 {
 	char buf[BUFLEN];
+	if(GPIO_num == GPIO_RESET){
+		printf("%d: %d\n", GPIO_num, *GPIO_is_set);
+	}
 	if((!(*GPIO_is_set)) && ((GPIO_PIN_LEVEL & GPIO_BIT_SET(GPIO_num))!=0)){
 		strncpy(buf,message_on,BUFLEN);
 		if(pthread_mutex_trylock(&lock) == 0){
@@ -131,69 +135,19 @@ int checkProximityPedal(boolean* GPIO_is_set, int GPIO_num, int GUI_N)
 	return res;
 }
 
-//Handle the exit from the program
-void ctrlC()
-{
-	if(closeThread == FALSE){
-		closeThread=TRUE;
-		pthread_join(th,NULL);
-	}
-	if(isLockInit == TRUE){
-		pthread_mutex_destroy(&lock);
-	}
-	SSD1306_turnOFF();
-	I2C_close();
-	if(udpSocket > 0){
-		int slen=sizeof(simulatorAddr);
-		char buf[7]=ENDING_PEDALBOARD;
-		sendto(udpSocket,buf,strlen(buf),0,(struct sockaddr *)&simulatorAddr,slen);
-		close(udpSocket);
-		int tmp= GPIO_PIN_LEVEL & GPIO_BIT_SET(4);
-		GPIO_unmap();
-		if(tmp){
-			system("reboot");
-		}else{
-			system("poweroff");
-		}
-	}
-	//The disconnection has been requested by the computer
-	exit(0);
-}
+//void initializeDisplay(){
+//	SSD1306_setup();
+//	SSD1306_cleanAll();
+//	SSD1306_updateScreen();
+//	usleep(100000);
+//}
 
-/**********************************************************************
-  MAIN
- **********************************************************************/
-int main()
-{
-	int change;
-	struct timeval selectExceed;
-	fd_set readSet;
-	int slen=sizeof(simulatorAddr);
-	struct sockaddr_in si_me;
-	struct ifaddrs *ifaddr,*ifa;
-	char buf[BUFLEN];
+void printNetworkAddress(){
 	char ip[BUFLEN];
 	char port[4];
-	boolean GPIO4_is_set = TRUE;
-	boolean GPIO17_is_set = FALSE;
-	boolean GPIO27_is_set = FALSE;
-	boolean GPIO22_is_set = TRUE;
-	boolean GPIO10_is_set = FALSE;
-	boolean GPIO9_is_set = FALSE;
-
-	selectExceed.tv_sec=0;
-	selectExceed.tv_usec=50;
-	signal(SIGINT,ctrlC);
-
-	//display initialization
-	SSD1306_setup();
-	SSD1306_cleanAll();
-	SSD1306_updateScreen();
-	usleep(100000);
-
-	//network initialization
+	struct ifaddrs *ifaddr,*ifa;
 	if (getifaddrs(&ifaddr) == -1){
-		return -1;
+		exit(-1);
 	}
 	for (ifa = ifaddr; ifa != NULL; ifa=ifa->ifa_next){
 		if (ifa->ifa_addr == NULL) continue;
@@ -209,81 +163,149 @@ int main()
 	SSD1306_updateScreen();
 
 	freeifaddrs(ifaddr);
+}
 
+void setupGPIO(){
+	GPIO_unmap();
 	GPIO_map();
-	GPIO_setInput(4);
-	GPIO_setInput(17);
-	GPIO_setInput(27);
-	GPIO_setInput(22);
-	GPIO_setInput(10);
-	GPIO_setInput(9);
+	GPIO_setInput(GPIO_ON_OFF);
+	GPIO_setInput(GPIO_PROXIMITY);
+	GPIO_setInput(GPIO_REVERB);
+	GPIO_setInput(GPIO_CHORUS);
+	GPIO_setInput(GPIO_DISTORTION);
+	GPIO_setInput(GPIO_RESET);
+	GPIO_setOutput(GPIO_SR04_TRIGGER);
+	GPIO_setInput(GPIO_SR04_ECHO);
+}
 
-	if ((udpSocket=socket(AF_INET, SOCK_DGRAM,IPPROTO_UDP))==-1){
-		return -1;
+//Handle the exit from the program
+void ctrlC()
+{
+	if(closeThread == FALSE){
+		closeThread=TRUE;
+		pthread_join(th,NULL);
 	}
-	memset((char *) &si_me, 0, sizeof(si_me));
-	si_me.sin_family = AF_INET;
-	si_me.sin_port = htons(PORT);
-	si_me.sin_addr.s_addr = htonl(INADDR_ANY);
-	if (bind(udpSocket,(struct sockaddr*)&si_me, sizeof(si_me))==-1){
-		return -1;
+	if(isLockInit == TRUE){
+		pthread_mutex_destroy(&lock);
+	}
+	SSD1306_turnOFF();
+	SSD1306_cleanAll();
+	SSD1306_updateScreen();
+	I2C_close();
+	if(udpSocket > 0){
+		int slen=sizeof(simulatorAddr);
+		char buf[7]=ENDING_PEDALBOARD;
+		sendto(udpSocket,buf,strlen(buf),0,(struct sockaddr *)&simulatorAddr,slen);
+		close(udpSocket);
 	}
 
-	memset(buf,0,BUFLEN);
-	int size=recvfrom(udpSocket, buf, BUFLEN, 0, (struct sockaddr *)&simulatorAddr, &slen);
-	if(!strcmp(buf,STARTING_PEDALBOARD)){
-		sendto(udpSocket,buf,size,0,(struct sockaddr *)&simulatorAddr,slen);
-	} else {
-		kill(getpid(),SIGINT);
-	}
+	int tmp = GPIO_PIN_LEVEL & GPIO_BIT_SET(GPIO_RESET);
+	GPIO_unmap();
+//	if(tmp){
+//		system("reboot");
+//	}else{
+//		system("poweroff");
+//	}
 
-	SSD1306_cleanYellow();
-	SSD1306_writeMessage("CONNECTED",28,6);
+	exit(0);
+}
 
-	if (pthread_mutex_init(&lock, NULL) != 0){
-		return -1;
-	}
-	isLockInit = TRUE;
-	setupProximity();
-	SSD1306_cleanBlue();
-	if(GPIO_PIN_LEVEL & GPIO_BIT_SET(17)!=0){
-		SSD1306_fillPixels((3*SSD1306_WIDTH/4),0,SSD1306_WIDTH-32,SSD1306_MAXROW - 3);
-	}
-	if(GPIO_PIN_LEVEL & GPIO_BIT_SET(27)==0){
-		SSD1306_fillPixels((2*SSD1306_WIDTH/4),0,(3*SSD1306_WIDTH/4),SSD1306_MAXROW - 3);
-	}
-	if(GPIO_PIN_LEVEL & GPIO_BIT_SET(22)!=0){
-		SSD1306_fillPixels((1*SSD1306_WIDTH/4),0,(2*SSD1306_WIDTH/4),SSD1306_MAXROW - 3);
-	}
-	if(GPIO_PIN_LEVEL & GPIO_BIT_SET(9)==0){
-		SSD1306_fillPixels((0*SSD1306_WIDTH/4),0,(1*SSD1306_WIDTH/4),SSD1306_MAXROW - 3);
-	}
+/**********************************************************************
+  MAIN
+ **********************************************************************/
+int main()
+{
+	int change;
+	struct timeval selectExceed;
+	fd_set readSet;
+	int slen=sizeof(simulatorAddr);
+	struct sockaddr_in si_me;
+	char buf[BUFLEN];
+	boolean ON_OFF_is_set = TRUE;
+	boolean PROXIMITY_is_set = FALSE;
+	boolean REVERB_is_set = FALSE;
+	boolean CHORUS_is_set = FALSE;
+	boolean RESET_is_set = TRUE;
+	boolean DISTORTION_is_set = FALSE;
+
+	selectExceed.tv_sec=0;
+	selectExceed.tv_usec=50;
+	signal(SIGINT,ctrlC);
+
+	SSD1306_setup();
+	setupGPIO();
 
 	while(1){
-		change = 0;
-		change += checkButton(&GPIO4_is_set, 4, -1, START_DAW, STOP_DAW);
-		change += checkProximityPedal(&GPIO17_is_set, 17, 3);
-		change += checkButton(&GPIO27_is_set, 27, 2, START_REVERBER, STOP_REVERBER);
-		change += checkButton(&GPIO22_is_set, 22, 1, START_CHORUS, STOP_CHORUS);
-		change += checkButton(&GPIO9_is_set, 9, 0, START_DISTORTION, STOP_DISTORTION);
+		SSD1306_cleanAll();
+		SSD1306_updateScreen();
+		printNetworkAddress();
+		if ((udpSocket=socket(AF_INET, SOCK_DGRAM,IPPROTO_UDP))==-1){
+			return -1;
+		}
+		memset((char *) &si_me, 0, sizeof(si_me));
+		si_me.sin_family = AF_INET;
+		si_me.sin_port = htons(PORT);
+		si_me.sin_addr.s_addr = htonl(INADDR_ANY);
+		if (bind(udpSocket,(struct sockaddr*)&si_me, sizeof(si_me))==-1){
+			return -1;
+		}
 
-		FD_ZERO(&readSet);
-		FD_SET(udpSocket,&readSet);
-		if((GPIO_PIN_LEVEL & GPIO_BIT_SET(10))==0){			
+		memset(buf,0,BUFLEN);
+		int size=recvfrom(udpSocket, buf, BUFLEN, 0, (struct sockaddr *)&simulatorAddr, &slen);
+		if(!strcmp(buf,STARTING_PEDALBOARD)){
+			sendto(udpSocket,buf,size,0,(struct sockaddr *)&simulatorAddr,slen);
+		} else {
 			kill(getpid(),SIGINT);
 		}
 
-		if(select(FD_SETSIZE,&readSet,NULL,NULL,&selectExceed) > 0){
-			close(udpSocket);
-			udpSocket = 0;
-			kill(getpid(),SIGINT);
+		SSD1306_cleanYellow();
+		SSD1306_cleanBlue();
+		SSD1306_writeMessage("CONNECTED",28,6);
+		SSD1306_updateScreen();
+
+		if (pthread_mutex_init(&lock, NULL) != 0){
+			return -1;
 		}
+		isLockInit = TRUE;
+		setupProximity();
+
+		PROXIMITY_is_set = (GPIO_PIN_LEVEL & GPIO_BIT_SET(GPIO_PROXIMITY)==0);
+		REVERB_is_set = (GPIO_PIN_LEVEL & GPIO_BIT_SET(GPIO_REVERB)==0);
+		CHORUS_is_set = (GPIO_PIN_LEVEL & GPIO_BIT_SET(GPIO_CHORUS)==0);
+		DISTORTION_is_set = (GPIO_PIN_LEVEL & GPIO_BIT_SET(GPIO_DISTORTION)==0);
+
+		while(1){
+			change = 0;
+			change += checkButton(&ON_OFF_is_set, GPIO_ON_OFF, -1, START_DAW, STOP_DAW);
+			change += checkProximityPedal(&PROXIMITY_is_set, GPIO_PROXIMITY, 3);
+			change += checkButton(&REVERB_is_set, GPIO_REVERB, 2, START_REVERB, STOP_REVERB);
+			change += checkButton(&CHORUS_is_set, GPIO_CHORUS, 1, START_CHORUS, STOP_CHORUS);
+			change += checkButton(&DISTORTION_is_set, GPIO_DISTORTION, 0, START_DISTORTION, STOP_DISTORTION);
+
+			FD_ZERO(&readSet);
+			FD_SET(udpSocket,&readSet);
+			if((GPIO_PIN_LEVEL & GPIO_BIT_SET(GPIO_RESET))==0){			
+		//		kill(getpid(),SIGINT);
+                                printf("pressed\n");
+			}
+
+			if(select(FD_SETSIZE,&readSet,NULL,NULL,&selectExceed) > 0){
+				recv(udpSocket, buf, BUFLEN, 0);
+				if(!strcmp(buf, "shutdown")){
+					kill(getpid(),SIGINT);
+				} else if(!strcmp(buf, "reset")){
+					close(udpSocket);
+					udpSocket = 0;
+					break;
+				}
+			}
 
 
-		if(change){
-			SSD1306_updateScreen();
+			if(change){
+				SSD1306_updateScreen();
+			}
+			usleep(200);
 		}
-		usleep(200);
 	}
 
 	return 0;
